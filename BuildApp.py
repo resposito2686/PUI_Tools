@@ -47,8 +47,9 @@ Change History:
     04/22/22 : v1.3.0 - Preferences menu + global variables -> class variables
     04/25/22 : v1.3.1 - Preferences log file path
     04/28/22 : v1.3.2 - Add carriage return + puibtool improvements + serial improvements
+    05/04/22 : v1.3.3 - Start new log file + puibtool interal + log file formatting.
     --------------------------------------------------------------------------------------------------------------------
-    
+
 ========================================================================================================================
 """
 
@@ -56,7 +57,7 @@ import os
 import shutil
 import PyInstaller.__main__
 
-VERSION = 'DeviceMonitor_1.3.2_Debug'
+VERSION = 'DeviceMonitor_1.3.3_Debug'
 CURRENT_PATH = os.path.join(os.path.dirname(__file__))
 
 #: Builds application using pyInstaller.

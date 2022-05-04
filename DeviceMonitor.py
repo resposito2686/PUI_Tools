@@ -49,13 +49,9 @@ Change History:
     04/22/22 : v1.3.0 - Preferences menu + global variables -> class variables
     04/25/22 : v1.3.1 - Preferences log file path
     04/28/22 : v1.3.2 - Add carriage return + puibtool improvements + serial improvements
+    05/04/22 : v1.3.3 - Start new log file + puibtool interal + log file formatting.
     --------------------------------------------------------------------------------------------------------------------
     
-    CURRENT CHANGES:
-        Autoscroll improvements.
-        log file format changed to function.
-        Start new log file option.
-        Error logging cleanup.
 ========================================================================================================================
 """
 import tkinter as tk
@@ -70,7 +66,8 @@ import sys
 import threading
 import time
 
-from tkinter import Toplevel, Menu, Button, Label, Scrollbar, Text, Entry, Frame, OptionMenu, StringVar, filedialog
+from tkinter import Toplevel, Frame, Menu, Label, Button, Entry, Text, Scrollbar, OptionMenu, Radiobutton
+from tkinter import StringVar, IntVar, filedialog
 from tkinter.messagebox import askyesno
 from datetime import datetime
 from configparser import ConfigParser, NoOptionError, NoSectionError
@@ -346,16 +343,31 @@ class PUIbtoolWindow(Toplevel):
         #: Text box widget.
         self.puib_text = Text(self, font=('Times', 16))
         self.puib_text.grid(row=2, column=0, columnspan=3, padx=5, pady=5)
-        self.puib_text.insert('end', f'INSTRUCTIONS:\n\n'
-                              f'1. DO NOT power down the device or close this window when the tool is running.\n'
-                              f'2. Power cycle the device.\n'
-                              f'3. Within 3 seconds of the device powering on again, press the RUN button below.\n'
-                              f'4. This process may take several minutes.\n\n\n')
+        self.puib_text.insert('end', f'WARNINGS:\n\n'
+                              f'* DO NOT power down the device or close this window when the tool is running.\n'
+                              f'* External Flash is recommended in most cases. Only choose Internal Flash when ' 
+                              f'explicitly required.\n'
+                              f'* This process may take several minutes.\n\n'
+                              f'INSTRUCTIONS:\n\n'
+                              f'1. Select the COM port and firmware image for the device above.\n'
+                              f'2. Power off the device.\n'
+                              f'3. Within 3 seconds of powering on the device, press the \'RUN PUIbtool\' button '
+                              f'below.\n'
+                              f'4. Once the firmware has been flashed, this window may be closed.\n\n\n')
         self.puib_text.config(state='disabled')
         
         puib_start_button = Button(self, text='Run PUIbtool', command=self.start_puib_thread, 
                                 bg="#A8C5A7", fg='black', padx=5, pady=5, width=25, height=3)
-        puib_start_button.grid(row=3, column=1)
+        puib_start_button.grid(row=3, rowspan=2, column=1)
+        
+        #: Flash selection widget.
+        self.puib_flash_iv = IntVar()
+        puib_ex_flash_button = Radiobutton(self, text='Save to External Flash', variable=self.puib_flash_iv, 
+                                          value=0)
+        puib_in_flash_button = Radiobutton(self, text='Save to Internal Flash', variable=self.puib_flash_iv, 
+                                          value=1)
+        puib_ex_flash_button.grid(row=3, column=2, padx=5, pady=1)
+        puib_in_flash_button.grid(row=4, column=2, padx=5, pady=1)
         
         #: Closes the current port and halts threads so puibtool can be ran.
         if dmf.serial_connection:
@@ -423,7 +435,13 @@ class PUIbtoolWindow(Toplevel):
         fw_name = self.puib_fw.get().split('/')[-1]
         ERR_LOGGER.debug(f'Firmware image={fw_name}')
         
-        fw_cmd = f'puibtool.exe flash --port \\\\.\\{self.puib_com_port.get()} --img \"{fw_name}\"'
+        #: Command for internal or external flash memeory.
+        if self.puib_flash_iv.get() == 0:
+            flash_cmd = 'flash'
+        else:
+            flash_cmd = 'image'
+        
+        fw_cmd = f'puibtool.exe {flash_cmd} --port \\\\.\\{self.puib_com_port.get()} --img \"{fw_name}\"'
         self.puib_text.config(state='normal')
         self.puib_text.insert('end', 'Running puibtool.exe...\n')
         self.puib_text.insert('end', fw_cmd)
@@ -461,7 +479,7 @@ class PUIbtoolWindow(Toplevel):
         self.puib_text.config(state='normal')
         self.puib_text.insert('end', 'This window may now be closed.\n')
         self.puib_text.config(state='disabled')
-
+        
     def exit_puib(self):
         '''
         Destroy the PUIbtool window.

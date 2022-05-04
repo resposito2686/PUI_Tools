@@ -47,6 +47,7 @@ Change History:
     04/22/22 : v1.3.0 - Preferences menu + global variables -> class variables
     04/25/22 : v1.3.1 - Preferences log file path
     04/28/22 : v1.3.2 - Add carriage return + puibtool improvements + serial improvements
+    05/04/22 : v1.3.3 - Start new log file + puibtool interal + log file formatting.
     --------------------------------------------------------------------------------------------------------------------
     
 ========================================================================================================================
